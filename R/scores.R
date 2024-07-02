@@ -150,7 +150,9 @@
            warning = function(w) {
              message(w$message, " for ", fit.name, "\n\t",
                      "parameters set to 0.0")
-             rep(0.0, length(initial.guess))
+             psi <- rep(0.0, length(initial.guess))
+             names(psi) <- names(initial.guess)
+             psi
            },
            error = function(e) {
              stop("unable to obtain root of Score for ", fit.name, "\n\t",
