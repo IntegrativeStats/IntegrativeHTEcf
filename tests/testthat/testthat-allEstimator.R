@@ -1774,3 +1774,76 @@ test_that("`.psiEst_IntHTEcf()` returns expected results; no ps", {
                                 optim.controls = list()),
                expected)
 })
+
+test_that("`.psiEst_IntHTEcf()` returns expected results; no ps", {
+  
+  n <- 1000L
+  X <- withr::with_seed(1234L, matrix(runif(3*n), n, 3))
+  X <- cbind(X, withr::with_seed(3456L, stats::rbinom(n, 1, 0.3)))
+  colnames(X) <- c("X1", "X2", "X3", "X4")
+  X[, "X1"] <- X[, "X3"]
+  A <- withr::with_seed(2345L, stats::rbinom(n, 1, 0.4))
+  Y <- withr::with_seed(3456L,  stats::rnorm(n, 2, 0.3))
+  ps <- withr::with_seed(4567L, stats::runif(n))
+  
+  data.obj <- list("X" = X, "A" = A, "Y" = Y)
+  data.rct <- data.obj
+  data.rwe <- data.obj
+  
+  data.rct$ps <- rep(0.4, n)
+  data.rwe$ps <- .propensityScore(X = X[, c("X1", "X2", "X4")], A = A, wgt = rep(1.0, n), 
+                                  sieve.degree = 1L,
+                                  method = "gam",
+                                  method.controls = list("family" = binomial),
+                                  models = "ps")$ps
+  
+  data.rct$q <- rep(1.0, n)
+  data.rwe$q <- rep(1.0, n)
+  
+  meta <- .metaAnalysis(data.rct = data.rct, 
+                        data.rwe = data.rwe, 
+                        contName = c("X1", "X3"),
+                        outcome.type = "cont",
+                        optim.controls = list())
+  
+  models <- list("RCT" = list("ME" = c("X2", "X4"), 
+                              "PS" = c("X1", "X2", "X4")),
+                 "RWE" = list("ME" = c("X2", "X4"), 
+                              "PS" = c("X1", "X2", "X4")),
+                 "contName" = c("X1", "X3"),
+                 "outcome" = list("method" = "gam", 
+                                  "controls" = list("family" = "gaussian")),
+                 "ps" = list("method" = "gam", 
+                             "controls" = list("family" = "binomial")),
+                 "cfName" = c("X1"),
+                 "sieve.degree" = 1L)
+  
+  rct <- .rctAnalysis(data.rct = data.rct, data.rwe = data.rwe, 
+                      outcome.type = "cont", models = models)
+  
+  data.rct$inv.sig2 <- rct$rct.inv.sig2
+  data.rwe$inv.sig2 <- rct$rwe.inv.sig2
+  rct$rct.inv.sig2 <- NULL
+  rct$rwe.inv.sig2 <- NULL
+  
+  integrative <- .integrativeAnalysis(data.rct = data.rct, 
+                                      data.rwe = data.rwe, 
+                                      outcome.type = "cont",
+                                      models = models)
+  
+  expected <- c(meta, rct, integrative)
+  
+  data.rct <- data.obj
+  data.rwe <- data.obj
+  
+  data.rct$ps <- rep(0.4, n)
+  data.rct$est.ps <- FALSE
+  
+  expect_message(out <- .psiEst_IntHTEcf(data.rct = data.rct, data.rwe = data.rwe,
+                                         outcome.type = "cont", models = models,
+                                         optim.controls = list()),
+                 "parameters set to 0.0")
+                 
+  
+  expect_equal(out,  expected)
+})
