@@ -1,7 +1,7 @@
 Package: IntegrativeHTEcf
 Type: Package
 Title: Integrative Analysis of Heterogeneous Treatment Effect and Confounding Function
-Version: 0.1.3
+Version: 0.1.4
 Author: Shu Yang and Shannon T. Holloway
 Maintainer: Shannon T. Holloway <shannon.t.holloway@gmail.com>
 Description: Integrative analysis of heterogeneous treatment effect with 
