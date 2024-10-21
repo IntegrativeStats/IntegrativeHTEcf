@@ -1,3 +1,5 @@
+<h5>Development Level: <span style="text-color:green">Beta</span></h5>
+
 # IntegrativeHTEcf
 Integrative analysis of heterogeneous treatment effect with confounding function that combines randomize trial and real-world evidence studies.
 
